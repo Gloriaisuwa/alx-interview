@@ -1,39 +1,51 @@
 #!/usr/bin/python3
-"""
-Log parsing
-"""
-
+"""Reads stdin line by line and computes metrics"""
 import sys
 
-if __name__ == '__main__':
 
-    filesize, count = 0, 0
-    codes = ["200", "301", "400", "401", "403", "404", "405", "500"]
-    stats = {k: 0 for k in codes}
+line_count = 0
+total_size = 0
+status_codes = {
+            '200': 0,
+                '301': 0,
+                    '400': 0,
+                        '401': 0,
+                            '403': 0,
+                                '404': 0,
+                                    '405': 0,
+                                        '500': 0
+                                        }
 
-    def print_stats(stats: dict, file_size: int) -> None:
-        print("File size: {:d}".format(filesize))
-        for k, v in sorted(stats.items()):
-            if v:
-                print("{}: {}".format(k, v))
 
-    try:
-        for line in sys.stdin:
-            count += 1
-            data = line.split()
-            try:
-                status_code = data[-2]
-                if status_code in stats:
-                    stats[status_code] += 1
-            except BaseException:
-                pass
-            try:
-                filesize += int(data[-1])
-            except BaseException:
-                pass
-            if count % 10 == 0:
-                print_stats(stats, filesize)
-        print_stats(stats, filesize)
-    except KeyboardInterrupt:
-        print_stats(stats, filesize)
-        raise
+def print_status():
+        """Helper function to output status"""
+            print(f"File size: {total_size}")
+
+                for code, count in status_codes.items():
+                            if count > 0:
+                                            print(f"{code}: {count}")
+
+
+                                            try:
+                                                    for line in sys.stdin:
+                                                                if line_count == 10:
+                                                                                print_status()
+                                                                                            line_count = 0
+
+                                                                                                    line = line.rstrip()
+                                                                                                            line_parts = line.split()
+
+                                                                                                                    if len(line_parts) > 4:
+                                                                                                                                    code = line_parts[-2]
+                                                                                                                                                total_size += int(line_parts[-1])
+
+                                                                                                                                                            # Collate the number of lines per status code
+                                                                                                                                                                        if code in status_codes:
+                                                                                                                                                                                            status_codes[code] += 1
+
+                                                                                                                                                                                                        # Increment the log count
+                                                                                                                                                                                                                    line_count += 1
+                                            except Exception:
+                                                    pass
+                                                finally:
+                                                        print_status()
